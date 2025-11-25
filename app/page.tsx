@@ -31,6 +31,7 @@ const llmProviders = [
     name: 'OpenAI',
     icon: '🟢',
     models: [
+            { id: 'gpt-5', name: 'GPT-5', description: 'Most advanced model' },
       { id: 'gpt-4o', name: 'GPT-4o', description: 'Most capable model' },
       { id: 'gpt-4o-mini', name: 'GPT-4o Mini', description: 'Fast & efficient' },
       { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', description: 'Enhanced performance' },
