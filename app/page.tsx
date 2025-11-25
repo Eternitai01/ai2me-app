@@ -13,16 +13,17 @@ const AI2meLogo = ({ size = 32 }: { size?: number }) => (
       </linearGradient>
     </defs>
     {/* Hexagon outline */}
-    <path d="M50 5L90 27.5V72.5L50 95L10 72.5V27.5L50 5Z" stroke="url(#logoGradient)" strokeWidth="4" fill="none"/>
-    {/* Infinity symbol */}
-    <path d="M30 50C30 42 36 36 44 36C52 36 56 42 50 50C44 58 48 64 56 64C64 64 70 58 70 50C70 42 64 36 56 36C48 36 44 42 50 50C56 58 52 64 44 64C36 64 30 58 30 50Z" stroke="url(#logoGradient)" strokeWidth="4" fill="none" strokeLinecap="round"/>
-    {/* Sparkles */}
-    <path d="M50 12L52 18L50 24L48 18L50 12Z" fill="url(#logoGradient)"/>
-    <path d="M22 32L24 36L22 40L20 36L22 32Z" fill="url(#logoGradient)"/>
-    <path d="M22 60L24 64L22 68L20 64L22 60Z" fill="url(#logoGradient)"/>
+    <path d="M50 8L87 28V68L50 88L13 68V28L50 8Z" stroke="url(#logoGradient)" strokeWidth="3" fill="none" strokeLinejoin="round"/>
+    {/* Infinity symbol - proper figure 8 */}
+    <path d="M32 50C32 44 36 40 42 40C48 40 50 44 50 50C50 56 52 60 58 60C64 60 68 56 68 50C68 44 64 40 58 40C52 40 50 44 50 50C50 56 48 60 42 60C36 60 32 56 32 50Z" stroke="url(#logoGradient)" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    {/* Top sparkle */}
+    <path d="M50 15L51.5 19L50 23L48.5 19L50 15Z" fill="url(#logoGradient)"/>
+    {/* Left top sparkle */}
+    <path d="M24 33L25.5 36L24 39L22.5 36L24 33Z" fill="url(#logoGradient)"/>
+    {/* Left bottom sparkle */}
+    <path d="M24 61L25.5 64L24 67L22.5 64L24 61Z" fill="url(#logoGradient)"/>
   </svg>
-);
-export default function Home() {
+);export default function Home() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState('auto');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
