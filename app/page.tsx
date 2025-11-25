@@ -254,7 +254,7 @@ export default function Home() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="How can I help?"
-                className="w-full text-lg text-gray-700 placeholder-gray-400 focus:outline-none mb-4"
+                className="w-full text-lg text-gray-700 placeholder-gray-400 focus:outline-none mb-4 bg-transparent"
               />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
