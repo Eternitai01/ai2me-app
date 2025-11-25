@@ -112,7 +112,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold text-gray-900 text-center mb-8">
               Enhance your productivity with AI
             </h1>
-                          <p className="text-xl text-gray-500 text-center mb-8">Smarter + Safer</p>
+                          <p className="text-4xl font-bold text-gray-900 text-center mb-8">Smarter + Safer</p>
 
             {/* Search Box */}
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 mb-8">
