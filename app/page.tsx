@@ -6,13 +6,22 @@ import { Search, Plus, FolderOpen, Bot, Code, MessageSquare, Globe, Paperclip, M
 // AI2me Logo Component
 const AI2meLogo = ({ size = 32 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M50 5L93.3 27.5V72.5L50 95L6.7 72.5V27.5L50 5Z" stroke="currentColor" strokeWidth="4" fill="none"/>
-    <path d="M30 50C30 44 34 40 40 40C46 40 50 44 50 50C50 44 54 40 60 40C66 40 70 44 70 50C70 56 66 60 60C54 60 50 56 50 50Z" stroke="currentColor" strokeWidth="3" fill="none"/>
-    <path d="M50 18L52 22L50 26L48 22L50 18Z" fill="currentColor"/>
-    <path d="M50 74L52 78L50 82L48 78L50 74Z" fill="currentColor"/>
+    <defs>
+      <linearGradient id="logoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#00D4FF" />
+        <stop offset="100%" stopColor="#0066FF" />
+      </linearGradient>
+    </defs>
+    {/* Hexagon outline */}
+    <path d="M50 5L90 27.5V72.5L50 95L10 72.5V27.5L50 5Z" stroke="url(#logoGradient)" strokeWidth="4" fill="none"/>
+    {/* Infinity symbol */}
+    <path d="M30 50C30 42 36 36 44 36C52 36 56 42 50 50C44 58 48 64 56 64C64 64 70 58 70 50C70 42 64 36 56 36C48 36 44 42 50 50C56 58 52 64 44 64C36 64 30 58 30 50Z" stroke="url(#logoGradient)" strokeWidth="4" fill="none" strokeLinecap="round"/>
+    {/* Sparkles */}
+    <path d="M50 12L52 18L50 24L48 18L50 12Z" fill="url(#logoGradient)"/>
+    <path d="M22 32L24 36L22 40L20 36L22 32Z" fill="url(#logoGradient)"/>
+    <path d="M22 60L24 64L22 68L20 64L22 60Z" fill="url(#logoGradient)"/>
   </svg>
 );
-
 export default function Home() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState('auto');
