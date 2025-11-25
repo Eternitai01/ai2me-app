@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Sparkles, ArrowRight, Zap, Brain, Globe } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
 
 export default function Home() {
   const [query, setQuery] = useState('');
@@ -16,65 +16,105 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <nav className="flex justify-between items-center mb-16">
+    <main className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-100">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-8 h-8 text-blue-400" />
-            <span className="text-2xl font-bold text-white">AI2me</span>
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">AI</span>
+            </div>
+            <span className="text-xl font-semibold text-gray-900">AI2me</span>
           </div>
-          <div className="flex gap-4">
-            <button className="text-slate-300 hover:text-white">Sign In</button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Get Started</button>
+          <nav className="flex items-center gap-6">
+            <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Features</a>
+            <a href="#" className="text-gray-600 hover:text-gray-900 text-sm">Pricing</a>
+            <button className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+              Get Started
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-6 py-24 text-center">
+        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 tracking-tight">
+          Search smarter.
+          <br />
+          <span className="text-gray-400">Not harder.</span>
+        </h1>
+        <p className="text-xl text-gray-500 mb-12 max-w-2xl mx-auto">
+          AI-powered answers to your questions. Fast, accurate, and beautifully simple.
+        </p>
+
+        {/* Search Box */}
+        <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask me anything..."
+              className="w-full pl-12 pr-14 py-4 text-lg border border-gray-200 rounded-2xl focus:outline-none focus:border-gray-400 focus:ring-0 transition-colors bg-gray-50 hover:bg-white"
+            />
+            <button
+              type="submit"
+              disabled={isSearching}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition-colors disabled:opacity-50"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
-        </nav>
+        </form>
 
-        {/* Hero Section */}
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Your AI-Powered
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500"> Search Assistant</span>
-          </h1>
-          <p className="text-xl text-slate-300 mb-12">Get instant, accurate answers powered by AI. Search smarter, not harder.</p>
+        {/* Quick suggestions */}
+        <div className="flex flex-wrap justify-center gap-2 mt-6">
+          {['How does AI work?', 'Best productivity tips', 'Explain quantum computing'].map((suggestion) => (
+            <button
+              key={suggestion}
+              onClick={() => setQuery(suggestion)}
+              className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </section>
 
-          {/* Search Box */}
-          <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto mb-16">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask me anything..."
-                className="w-full pl-12 pr-14 py-4 bg-slate-800/50 border border-slate-700 rounded-2xl text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 p-2 rounded-xl hover:bg-blue-700">
-                <ArrowRight className="w-5 h-5 text-white" />
-              </button>
+      {/* Features Grid */}
+      <section className="container mx-auto px-6 py-24 border-t border-gray-100">
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center p-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">⚡</span>
             </div>
-          </form>
-
-          {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-              <Zap className="w-10 h-10 text-yellow-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Lightning Fast</h3>
-              <p className="text-slate-400">Get instant answers powered by advanced AI models</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Lightning Fast</h3>
+            <p className="text-gray-500">Get answers in milliseconds, powered by advanced AI.</p>
+          </div>
+          <div className="text-center p-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">🎯</span>
             </div>
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-              <Brain className="w-10 h-10 text-purple-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Smart Context</h3>
-              <p className="text-slate-400">AI understands context and provides relevant results</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Accurate Results</h3>
+            <p className="text-gray-500">Context-aware responses that understand your intent.</p>
+          </div>
+          <div className="text-center p-8">
+            <div className="w-12 h-12 bg-gray-100 rounded-xl mx-auto mb-4 flex items-center justify-center">
+              <span className="text-2xl">✨</span>
             </div>
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700">
-              <Globe className="w-10 h-10 text-blue-400 mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Web Search</h3>
-              <p className="text-slate-400">Access real-time information from across the web</p>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Clean & Simple</h3>
+            <p className="text-gray-500">No clutter, no ads. Just the information you need.</p>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 py-8">
+        <div className="container mx-auto px-6 text-center text-gray-400 text-sm">
+          © 2025 AI2me. All rights reserved.
+        </div>
+      </footer>
     </main>
   );
 }
