@@ -1,5 +1,49 @@
 import React, { useState } from "react";
 
+// Orb SVG Placeholder (replace if you wish)
+const AIOrb = () => (
+  <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+    <svg width={170} height={170} viewBox="0 0 170 170">
+      <radialGradient id="orb" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+        <stop offset="0%" stopColor="#2224ff" />
+        <stop offset="75%" stopColor="#444" />
+        <stop offset="100%" stopColor="#191919" />
+      </radialGradient>
+      <circle cx={85} cy={85} r={80} fill="url(#orb)" />
+      <path d="M50 85 Q85 60 120 85 T170 85" stroke="#fff" strokeWidth={3} fill="none" opacity={0.85}/>
+    </svg>
+  </div>
+);
+
+export default function Home() {
+  const [isLight, setIsLight] = useState(false);
+  const bgColor = isLight ? "#fafafa" : "#000";
+  const fgColor = isLight ? "#222" : "#fff";
+
+  return (
+    <div style={{ minHeight: "100vh", width: "100vw", background: bgColor, color: fgColor, transition: "background 0.2s, color 0.2s" }}>
+      <button style={{ position: "absolute", top: 18, right: 36, background: isLight ? "#222" : "#fff", color: isLight ? "#fff" : "#222", border: "none", borderRadius: 22, padding: "9px 22px", fontWeight: 500, cursor: "pointer", zIndex: 99 }} onClick={() => setIsLight((x) => !x)}>
+        {isLight ? "Modo oscuro" : "Modo claro"}
+      </button>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "80vh" }}>
+        <h1 style={{ fontSize: "3.2rem", marginBottom: 18, textAlign: "center", fontWeight: 700, letterSpacing: -1 }}>
+          Invierte con AI2me
+        </h1>
+        <div style={{ maxWidth: 540, fontSize: "1.25rem", textAlign: "center", marginBottom: 30, lineHeight: 1.5 }}>
+          Alcanza tus metas con una cartera gestionada por IA.<br/>
+          Invierte en piloto automático con transferencias periódicas, o participa manualmente según tus estrategias.<br/>
+          Capital sujeto a riesgo.
+        </div>
+        <button style={{ background: fgColor, color: bgColor, borderRadius: 28, padding: "18px 38px", fontSize: "1.25rem", fontWeight: 600, marginBottom: 32, transition: "background 0.2s,color 0.2s", border: "none", cursor: "pointer", boxShadow: "0 2px 24px #0004" }}>
+          Pruébalo
+        </button>
+        <AIOrb />
+      </div>
+    </div>
+  );
+}
+import React, { useState } from "react";
+
 // Orb SVG Placeholder (replace with your AI orb image or DALL·E-asset)
 const AIOrb = () => (
   <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
