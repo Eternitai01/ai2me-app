@@ -4,7 +4,13 @@
 
 :root {
   --foreground-rgb: 17, 24, 39;
-  --background-rgb: 255, 255, 255;
+  --background-rgb: 249, 250, 251;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 html {
@@ -19,10 +25,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#__next {
+  height: 100%;
+}
+
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
 /* Custom scrollbar */
@@ -32,7 +40,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
