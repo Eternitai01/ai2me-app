@@ -249,7 +249,7 @@ export default function Home() {
             <p className="text-4xl font-bold text-gray-900 text-center mb-8">Smarter + Safer</p>
 
             {/* Search Box */}
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-4 mb-8">
+            <form onSubmit={handleSubmit} className="bg-gray-100 dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-8">
               <input
                 type="text"
                 value={query}
