@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Search, Plus, FolderOpen, Bot, Code, MessageSquare, Globe, Paperclip, Mic, ChevronRight, ChevronLeft, Sparkles, FileText, Settings, ChevronDown } from 'lucide-react';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // AI2me Logo Component
 const AI2meLogo = ({ size = 32 }: { size?: number }) => (
@@ -232,7 +233,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="flex justify-end p-4">
+          <div className="flex justify-end items-center gap-4 p-4">                        <ThemeToggle />
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             Upgrade <Sparkles className="w-4 h-4" />
           </button>
