@@ -232,7 +232,13 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="flex justify-end p-4">
+        <div className="flex justify-between items-center p-4 relative">          
+          {/* AgentOS Logo - centered */}
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <a href="https://ai2me.com" title="AgentOS 24/7 - Home">
+              <img src="/agentos-logo.png" alt="AgentOS 24/7" className="h-8 w-auto object-contain" />
+            </a>
+          </div>
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             Upgrade <Sparkles className="w-4 h-4" />
           </button>
