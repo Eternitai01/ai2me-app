@@ -1,0 +1,540 @@
+"use client";
+
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { Loader2, Code as CodeIcon, File, Eye, Upload, Download, Copy, Check, LayoutDashboard, Type, Image, Code, Settings } from "lucide-react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useReactFlow, screenToFlowPosition, ReactFlowProvider } from "reactflow";
+
+interface GeneratedFile {
+  path: string;
+  content: string;
+}
+import ReactFlow, {
+  Node,
+  Edge,
+  NodeProps,
+  Connection,
+  addEdge,
+  applyNodeChanges,
+  applyEdgeChanges,
+  NodeChange,
+  EdgeChange,
+  Background,
+  Controls,
+  MiniMap,
+  Handle,
+  Position,
+} from "reactflow";
+import "reactflow/dist/style.css";
+
+
+// === Node Types ===
+const CustomNode = ({ data }: NodeProps) => {
+  return (
+    <div className="px-4 py-3 shadow-lg rounded-lg border bg-[var(--chat-bg-primary)] border-[var(--chat-border)] min-w-[200px]">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="p-1.5 rounded-md bg-blue-100">
+          {data.icon}
+        </div>
+        <div className="font-semibold text-sm text-[var(--chat-text-primary)]">{data.label}</div>
+      </div>
+      <div className="text-xs text-[var(--chat-text-secondary)] mb-3">{data.description}</div>
+      <Handle type="target" position={Position.Top} className="!w-2 !h-2" />
+      <Handle type="source" position={Position.Bottom} className="!w-2 !h-2" />
+    </div>
+  );
+};
+
+const nodeTypes = {
+  custom: CustomNode,
+};
+
+// === Component Library ===
+const COMPONENTS = [
+  {
+    id: "hero",
+    label: "Hero Section",
+    description: "Full‑width banner with headline, subhead, CTA",
+    icon: <LayoutDashboard size={16} />,
+    defaultProps: { title: "Welcome", subtitle: "Build amazing websites with AI" },
+  },
+  {
+    id: "pricing",
+    label: "Pricing Table",
+    description: "Three‑tier pricing with features and buttons",
+    icon: <Type size={16} />,
+    defaultProps: { tiers: ["Basic", "Pro", "Enterprise"] },
+  },
+  {
+    id: "features",
+    label: "Features Grid",
+    description: "3‑column grid of features with icons",
+    icon: <Image size={16} />,
+    defaultProps: { columns: 3 },
+  },
+  {
+    id: "testimonials",
+    label: "Testimonials",
+    description: "Customer quotes with avatars",
+    icon: <Code size={16} />,
+    defaultProps: { count: 3 },
+  },
+  {
+    id: "footer",
+    label: "Footer",
+    description: "Site footer with links, copyright, social",
+    icon: <Settings size={16} />,
+    defaultProps: { year: new Date().getFullYear() },
+  },
+];
+
+// === Property Editor ===
+interface PropertyPanelProps {
+  selectedNode: Node | null;
+  onUpdateNode: (id: string, props: Record<string, any>) => void;
+}
+const PropertyPanel = ({ selectedNode, onUpdateNode }: PropertyPanelProps) => {
+  if (!selectedNode) {
+    return (
+      <div className="h-full p-6 bg-[var(--chat-bg-secondary)] border-l border-[var(--chat-border)] flex flex-col items-center justify-center text-[var(--chat-text-secondary)]">
+        <Settings size={32} />
+        <p className="mt-4 text-sm">Select a component to edit its properties.</p>
+      </div>
+    );
+  }
+
+  const handleChange = (key: string, value: any) => {
+    onUpdateNode(selectedNode.id, { ...selectedNode.data.props, [key]: value });
+  };
+
+  return (
+    <div className="h-full p-6 bg-[var(--chat-bg-secondary)] border-l border-[var(--chat-border)] overflow-y-auto">
+      <h3 className="font-bold text-lg text-[var(--chat-text-primary)] mb-6">Properties</h3>
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-[var(--chat-text-secondary)] mb-2">Label</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border border-[var(--chat-border)] rounded-md text-sm text-[var(--chat-text-primary)] bg-[var(--chat-bg-primary)]"
+            value={selectedNode.data.label}
+            onChange={(e) =>
+              onUpdateNode(selectedNode.id, { ...selectedNode.data, label: e.target.value })
+            }
+          />
+        </div>
+        {Object.entries(selectedNode.data.props || {}).map(([key, val]) => (
+          <div key={key}>
+            <label className="block text-sm font-medium text-[var(--chat-text-secondary)] mb-2 capitalize">
+              {key}
+            </label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-[var(--chat-border)] rounded-md text-sm text-[var(--chat-text-primary)] bg-[var(--chat-bg-primary)]"
+              value={String(val)}
+              onChange={(e) => handleChange(key, e.target.value)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// === Main Component ===
+interface WebsiteBuilderCanvasProps {
+  initialNodes?: Node[];
+  initialEdges?: Edge[];
+  onNodesChange?: (nodes: Node[]) => void;
+  onEdgesChange?: (edges: Edge[]) => void;
+}
+export default function WebsiteBuilderCanvas(props: WebsiteBuilderCanvasProps) {
+  return (
+    <ReactFlowProvider>
+      <WebsiteBuilderCanvasInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function WebsiteBuilderCanvasInner({
+  initialNodes = [],
+  initialEdges = [],
+  onNodesChange,
+  onEdgesChange,
+}: WebsiteBuilderCanvasProps) {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [generatedFiles, setGeneratedFiles] = useState<GeneratedFile[]>([]);
+  const [selectedFileIndex, setSelectedFileIndex] = useState<number>(0);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'canvas' | 'code'>('canvas');
+
+  const onNodesChangeLocal = useCallback(
+    (changes: NodeChange[]) => {
+      setNodes((nds) => applyNodeChanges(changes, nds));
+      onNodesChange?.(applyNodeChanges(changes, nodes));
+    },
+    [nodes, onNodesChange]
+  );
+
+  const onEdgesChangeLocal = useCallback(
+    (changes: EdgeChange[]) => {
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+      onEdgesChange?.(applyEdgeChanges(changes, edges));
+    },
+    [edges, onEdgesChange]
+  );
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    []
+  );
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const { screenToFlowPosition } = useReactFlow();
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const componentId = event.dataTransfer.getData("application/reactflow");
+      const component = COMPONENTS.find((c) => c.id === componentId);
+      if (!component) return;
+
+      // Convert screen coordinates to flow coordinates
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode: Node = {
+        id: `${componentId}_${Date.now()}`,
+        type: "custom",
+        position,
+        data: {
+          label: component.label,
+          description: component.description,
+          icon: component.icon,
+          props: component.defaultProps,
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [screenToFlowPosition]
+  );
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+  }, []);
+
+  const handleUpdateNode = useCallback((nodeId: string, newData: Record<string, any>) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId ? { ...node, data: { ...node.data, ...newData } } : node
+      )
+    );
+  }, []);
+
+  const handleGenerateCode = async () => {
+    if (nodes.length === 0) {
+      setGenerateError("Add at least one component to generate code");
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerateError(null);
+    try {
+      // Extract component data from nodes
+      const components = nodes.map(node => ({
+        type: node.data.label.toLowerCase().replace(/\s+/g, '_'),
+        data: node.data.props || {}
+      }));
+
+      const style = {}; // TODO: collect style from UI
+
+      const response = await fetch('/api/ai/website/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ components, style, framework: 'nextjs' })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to generate code: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
+      if (data.files && Array.isArray(data.files)) {
+        setGeneratedFiles(data.files);
+        setSelectedFileIndex(0);
+        setViewMode('code');
+      } else {
+        throw new Error('Invalid response format: missing files array');
+      }
+    } catch (error: any) {
+      console.error('Failed to generate website:', error);
+      setGenerateError(error.message || 'Unknown error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopyFile = async () => {
+    if (generatedFiles.length === 0 || selectedFileIndex >= generatedFiles.length) return;
+    const file = generatedFiles[selectedFileIndex];
+    try {
+      await navigator.clipboard.writeText(file.content);
+      // TODO: show success toast
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleDownloadFile = () => {
+    if (generatedFiles.length === 0 || selectedFileIndex >= generatedFiles.length) return;
+    const file = generatedFiles[selectedFileIndex];
+    const blob = new Blob([file.content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.path.split('/').pop() || 'file.txt';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  const handleExportToGitHub = async () => {
+    // TODO: implement GitHub export
+    alert('GitHub export not yet implemented');
+  };
+
+  const handleDeploy = async () => {
+    // TODO: implement Vercel deployment
+    alert('Deployment not yet implemented');
+  };
+
+  const getLanguageFromFileName = (fileName: string): string => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const languageMap: Record<string, string> = {
+      tsx: 'tsx', ts: 'typescript', jsx: 'jsx', js: 'javascript', json: 'json',
+      css: 'css', scss: 'scss', html: 'html', md: 'markdown', py: 'python',
+      java: 'java', cpp: 'cpp', c: 'c', go: 'go', rs: 'rust', php: 'php',
+      rb: 'ruby', sh: 'bash', yml: 'yaml', yaml: 'yaml', xml: 'xml', sql: 'sql',
+    };
+    return languageMap[ext || ''] || 'text';
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Top Mode Toggle */}
+      <div className="h-12 border-b border-[var(--chat-border)] bg-[var(--chat-bg-primary)] flex items-center px-4">
+        <div className="flex items-center gap-2">
+          <button
+            className={`px-4 py-1.5 text-sm font-medium rounded-md ${viewMode === 'canvas' ? 'bg-[var(--chat-accent)] text-white' : 'bg-[var(--chat-bg-secondary)] text-[var(--chat-text-secondary)] hover:bg-[var(--chat-bg-tertiary)]'}`}
+            onClick={() => setViewMode('canvas')}
+          >
+            <LayoutDashboard size={16} className="inline mr-2" />
+            Canvas
+          </button>
+          <button
+            className={`px-4 py-1.5 text-sm font-medium rounded-md ${viewMode === 'code' ? 'bg-[var(--chat-accent)] text-white' : 'bg-[var(--chat-bg-secondary)] text-[var(--chat-text-secondary)] hover:bg-[var(--chat-bg-tertiary)]'}`}
+            onClick={() => setViewMode('code')}
+            disabled={generatedFiles.length === 0}
+          >
+            <CodeIcon size={16} className="inline mr-2" />
+            Code
+          </button>
+        </div>
+        <div className="ml-auto flex items-center gap-4">
+          {generateError && (
+            <div className="text-sm text-red-600 bg-red-50 px-3 py-1 rounded border border-red-200">
+              {generateError}
+            </div>
+          )}
+          {isGenerating && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Loader2 size={16} className="animate-spin" />
+              Generating code...
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        {viewMode === 'canvas' ? (
+          <>
+            {/* Left: Component Library */}
+            <div className="w-64 border-r border-[var(--chat-border)] bg-[var(--chat-bg-primary)] overflow-y-auto p-4">
+              <h3 className="font-bold text-lg text-[var(--chat-text-primary)] mb-4">Components</h3>
+              <div className="space-y-3">
+                {COMPONENTS.map((comp) => (
+                  <div
+                    key={comp.id}
+                    className="p-3 border border-[var(--chat-border)] rounded-lg cursor-move hover:bg-[var(--chat-bg-secondary)] transition-colors"
+                    draggable
+                    onDragStart={(event) =>
+                      event.dataTransfer.setData("application/reactflow", comp.id)
+                    }
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-md bg-blue-100">{comp.icon}</div>
+                      <div>
+                        <div className="font-medium text-sm text-[var(--chat-text-primary)]">{comp.label}</div>
+                        <div className="text-xs text-[var(--chat-text-secondary)]">{comp.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Center: Canvas */}
+            <div className="flex-1 relative bg-[var(--chat-bg-primary)]" onDragOver={onDragOver} onDrop={onDrop}>
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChangeLocal}
+                onEdgesChange={onEdgesChangeLocal}
+                onConnect={onConnect}
+                onNodeClick={onNodeClick}
+                nodeTypes={nodeTypes}
+                fitView
+              >
+                <Background />
+                <Controls />
+                <MiniMap />
+              </ReactFlow>
+            </div>
+
+            {/* Right: Property Panel */}
+            <div className="w-80">
+              <PropertyPanel selectedNode={selectedNode} onUpdateNode={handleUpdateNode} />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Left: File List */}
+            <div className="w-64 border-r border-[var(--chat-border)] bg-[var(--chat-bg-primary)] overflow-y-auto p-4">
+              <h3 className="font-bold text-lg text-[var(--chat-text-primary)] mb-4">Generated Files</h3>
+              <div className="space-y-1">
+                {generatedFiles.map((file, idx) => (
+                  <div
+                    key={file.path}
+                    className={`p-3 border rounded-lg cursor-pointer ${selectedFileIndex === idx ? 'border-blue-400 bg-blue-50' : 'border-[var(--chat-border)] hover:bg-[var(--chat-bg-secondary)]'}`}
+                    onClick={() => setSelectedFileIndex(idx)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <File size={14} className="text-[var(--chat-text-secondary)]" />
+                      <div className="text-sm font-medium text-[var(--chat-text-primary)] truncate">
+                        {file.path.split('/').pop()}
+                      </div>
+                    </div>
+                    <div className="text-xs text-[var(--chat-text-secondary)] mt-1 truncate">
+                      {file.path}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Center: Code Editor */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* File Header */}
+              <div className="px-4 py-3 border-b border-[var(--chat-border)] flex items-center justify-between bg-[var(--chat-bg-secondary)]">
+                <div className="flex items-center gap-2">
+                  <File size={16} className="text-gray-500" />
+                  <span className="font-medium text-gray-800">
+                    {generatedFiles[selectedFileIndex]?.path}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCopyFile}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--chat-text-secondary)] hover:text-[var(--chat-text-primary)] hover:bg-[var(--chat-bg-tertiary)] rounded-md transition-colors"
+                    title="Copy to clipboard"
+                  >
+                    <Copy size={14} />
+                    Copy
+                  </button>
+                  <button
+                    onClick={handleDownloadFile}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--chat-text-secondary)] hover:text-[var(--chat-text-primary)] hover:bg-[var(--chat-bg-tertiary)] rounded-md transition-colors"
+                    title="Download file"
+                  >
+                    <Download size={14} />
+                    Download
+                  </button>
+                </div>
+              </div>
+              {/* Code Content */}
+              <div className="flex-1 overflow-auto bg-gray-900">
+                {generatedFiles[selectedFileIndex] && (
+                  <SyntaxHighlighter
+                    language={getLanguageFromFileName(generatedFiles[selectedFileIndex].path)}
+                    style={vscDarkPlus}
+                    customStyle={{
+                      margin: 0,
+                      padding: '1rem',
+                      background: 'transparent',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                    }}
+                    showLineNumbers
+                    wrapLines
+                  >
+                    {generatedFiles[selectedFileIndex].content}
+                  </SyntaxHighlighter>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom: Toolbar */}
+      <div className="h-12 border-t border-[var(--chat-border)] bg-[var(--chat-bg-primary)] flex items-center px-4">
+        <div className="flex items-center gap-4 text-sm">
+          <button
+            onClick={handleGenerateCode}
+            disabled={isGenerating}
+            className="px-4 py-1.5 bg-[var(--chat-accent)] text-white rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isGenerating && <Loader2 size={14} className="animate-spin" />}
+            {isGenerating ? 'Generating...' : 'Generate Code'}
+          </button>
+          <button
+            onClick={handleExportToGitHub}
+            disabled={generatedFiles.length === 0}
+            className="px-4 py-1.5 border border-[var(--chat-border)] rounded-md hover:bg-[var(--chat-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Upload size={14} />
+            Export to GitHub
+          </button>
+          <button
+            onClick={() => alert('Preview not yet implemented')}
+            disabled={generatedFiles.length === 0}
+            className="px-4 py-1.5 border border-[var(--chat-border)] rounded-md hover:bg-[var(--chat-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Eye size={14} />
+            Preview
+          </button>
+          <button
+            onClick={handleDeploy}
+            disabled={generatedFiles.length === 0}
+            className="px-4 py-1.5 border border-[var(--chat-border)] rounded-md hover:bg-[var(--chat-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <Upload size={14} />
+            Deploy
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
