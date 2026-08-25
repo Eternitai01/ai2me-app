@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useBetaGate } from './context/BetaGateContext';
 import { Search, Plus, FolderOpen, Bot, Code, MessageSquare, Globe, Paperclip, Mic, ChevronRight, ChevronLeft, Sparkles, FileText, Settings, ChevronDown } from 'lucide-react';
 
 // AI2me Logo Component
@@ -102,6 +103,7 @@ export default function Home() {
   const [selectedLLM, setSelectedLLM] = useState({ provider: 'Auto', model: 'Auto-select best model' });
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { guardAction } = useBetaGate();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -115,10 +117,19 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  /** Wrap any tool-initiating action. Returns true if the user may proceed. */
+  const withBetaGate = async (action: () => void) => {
+    const allowed = await guardAction();
+    if (allowed) action();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
-    console.log('Search:', query, 'Mode:', mode, 'LLM:', selectedLLM);
+    await withBetaGate(() => {
+      // TODO: wire to real chat/completions API
+      console.log('Chat submit:', query, 'Mode:', mode, 'LLM:', selectedLLM);
+    });
   };
 
   const selectModel = (provider: string, model: { id: string; name: string }) => {
@@ -390,7 +401,10 @@ export default function Home() {
                   <Plus className="w-4 h-4" />
                 </div>
               </div>
-              <div className="bg-white rounded-xl border border-gray-200 p-4">
+              <div
+                className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => withBetaGate(() => { console.log('Open project: GTM Strategy') })}
+              >
                 <FolderOpen className="w-8 h-8 text-gray-400 mb-3" />
                 <h3 className="font-medium text-gray-900">GTM Strategy</h3>
                 <p className="text-sm text-gray-500">Nov 24, 2025</p>
@@ -410,21 +424,30 @@ export default function Home() {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div
+                  className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => withBetaGate(() => { console.log('Tool: Research') })}
+                >
                   <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
                     <FileText className="w-5 h-5 text-blue-600" />
                   </div>
                   <h3 className="font-medium text-gray-900">Research</h3>
                   <p className="text-sm text-gray-500">Deep research with industry-leading sources</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div
+                  className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => withBetaGate(() => { console.log('Tool: Compute') })}
+                >
                   <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center mb-3">
                     <Code className="w-5 h-5 text-green-600" />
                   </div>
                   <h3 className="font-medium text-gray-900">Compute</h3>
                   <p className="text-sm text-gray-500">Solve complex data and math problems</p>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <div
+                  className="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => withBetaGate(() => { console.log('Tool: Create') })}
+                >
                   <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-3">
                     <Sparkles className="w-5 h-5 text-emerald-600" />
                   </div>
